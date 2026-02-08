@@ -135,6 +135,8 @@ fn callback_add_reminder(field_buffer: &Vec<String>) {
 
     let mut reminders = load_reminders();
     reminders.push(reminder);
+    // TODO: Implement an store_reminders function to handle the json logic (just as
+    // load_reminders) and avoid this boilerplate code here.
     let data = serde_json::to_string_pretty(&reminders).expect("Failed to serialize reminders");
     fs::write(REMINDERS_FILE_PATH, data).expect("Failed to write reminders to file");
 
