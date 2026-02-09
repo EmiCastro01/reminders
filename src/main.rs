@@ -3,11 +3,23 @@ use chrono::NaiveDate;
 use serde::{Serialize, Deserialize};
 use std::fs;
 use std::io;
+use std::env;
+use std::path::PathBuf;
 //use notify_rust::Notification;
 const CLI_TOP_BORDER: &str = "┌───────────────────────────────────────────────────┐\n|                      Reminders                    |\n└ - - - - - - - - - - - - - - - - - - - - - - - - - ┘ \n\n";
 const CLI_BOTTOM_BORDER: &str = "\n\n└───────────────────────────────────────────────────┘";
 
-const REMINDERS_FILE_PATH: &str = "reminders.json";
+const REMINDERS_FILE_PATH: &str = ".local/share/reminders.json";
+
+fn get_file_path() -> String {
+    if let Ok(home) = env::var("HOME"){
+        let mut path = PathBuf::from(home);
+        path.push(REMINDERS_FILE_PATH);
+        return path.to_string_lossy().into_owned();
+    }
+    return REMINDERS_FILE_PATH.to_string();
+
+}
 // ---- Reminder structure ----- 
 #[derive(Serialize, Deserialize, Debug)]
 struct Reminder {
@@ -26,7 +38,7 @@ enum STATUS {
 }
 
 fn load_reminders() -> Vec<Reminder> {
-    let data = fs::read_to_string(REMINDERS_FILE_PATH).unwrap_or_else(|_| "[]".to_string());
+    let data = fs::read_to_string(get_file_path()).unwrap_or_else(|_| "[]".to_string());
     serde_json::from_str(&data).unwrap_or_else(|_| Vec::new())
 
 }
@@ -136,7 +148,7 @@ fn callback_add_reminder(field_buffer: &Vec<String>) {
     let mut reminders = load_reminders();
     reminders.push(reminder);
     let data = serde_json::to_string_pretty(&reminders).expect("Failed to serialize reminders");
-    fs::write(REMINDERS_FILE_PATH, data).expect("Failed to write reminders to file");
+    fs::write(get_file_path(), data).expect("Failed to write reminders to file");
 
     println!("Reminder saved successfully!");
 }
