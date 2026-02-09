@@ -260,7 +260,14 @@ fn main() {
             // Aquí puedes agregar la lógica para editar una tarea específica
         }
         None => {
-            println!("No se ha especificado ningún comando. Usa --help para ver las opciones disponibles.");
+            println!("Usage: rem [action] --[option] 
+actions: 
+        add: Add new reminder.
+        show: Show existent reminders.
+        rm: Remove a specific reminder.(--all removes all reminders)
+        edit: Edit a specific reminder (--id selects the reminder by its id)
+                                       (--name selects the reminder by its name)"
+                    );
         }
     }
    }

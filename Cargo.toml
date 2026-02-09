@@ -9,3 +9,8 @@ clap = { version = "4.0", features = ["derive"] }
 notify-rust = "4.12.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+[[bin]]
+name = "rem"
+path = "src/main.rs" # O la ruta a tu archivo fuente principal
+
