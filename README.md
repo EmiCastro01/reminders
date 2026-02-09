@@ -26,6 +26,8 @@ To build this project ensure you have Rust installed, and this repository cloned
 cargo build 
 ```
 This will compile the project and create an executable in the `target/debug` directory. You can run the executable to manage your reminders.
+The commands could be ran by that path or move the binary to some of your $PATH and just run `rem [action]`
+
 
 ## Contributing:
 
