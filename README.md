@@ -15,8 +15,9 @@ For Contributors, i apologize in advance for the code quality, I am still learni
 
 ## Usage:
 
-- Adding a reminder: `./target/debug/reminders add` opens a prompt to enter the reminder details.
-- Viewing reminders: `./target/debug/reminders show` displays all the saved reminders.
+- Adding a reminder: `./rem add` opens a prompt to enter the reminder details.
+- Viewing reminders: `./rem show` displays all the saved reminders.
+- Running the notifier: `./rem check` notifies only if you have reminders for today or tomorrow.
 
 ## Building:
 
