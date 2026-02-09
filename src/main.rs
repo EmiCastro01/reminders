@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use chrono::{NaiveDate,Local};
+use chrono::{NaiveDate,Local, Duration};
 use serde::{Serialize, Deserialize};
 use std::fs;
 use std::io;
@@ -26,23 +26,87 @@ fn get_file_path() -> String {
 fn run_check() {
    let reminders = load_reminders();
    let today = Local::now().naive_local().date();
-
+   let tomorrow = today + Duration::days(1);
+   let mut today_rems: Vec<Reminder> = Vec::new();
+   let mut tomorrow_rems: Vec<Reminder> = Vec::new();
+   let mut breaker: bool = true; // for avoiding jump to notify if no tasks for today or tomorrow.
    for rem in reminders {
+    
+       if let Ok(rem_date) = NaiveDate::parse_from_str(&rem.date, "%Y-%m-%d") {
+            if rem_date == today{
+                today_rems.push(rem.clone());
+                breaker = false;
+            }
+       }
 
        if let Ok(rem_date) = NaiveDate::parse_from_str(&rem.date, "%Y-%m-%d") {
-        if rem_date == today{
-            Notification::new()
-                .summary(&format!("⏰ Heyy!!🤪 {}", rem.name))
-                .body(&format!("{}", rem.description))
-                .icon("appointment-soon")
-                .show()
-                .unwrap();
-        }
+           if rem_date == tomorrow{
+                tomorrow_rems.push(rem.clone());
+                breaker = false;
+           }
        }
    }
+   if breaker {
+       return;
+   }
+   notify(&mut today_rems, &mut tomorrow_rems)
+}
+
+fn notify(today_rems: &mut Vec<Reminder>,tomorrow_rems: &mut Vec<Reminder>) {
+    if !today_rems.is_empty() && tomorrow_rems.is_empty(){
+        let mut today_rems_as_string = String::new();
+        
+        for rem in today_rems {
+            today_rems_as_string.push_str(&rem.name);
+            today_rems_as_string.push_str(", ");
+        }
+        today_rems_as_string.truncate(today_rems_as_string.len().saturating_sub(2));
+    Notification::new()
+        .summary("⏰ Heyyy!! You have some stuff today")
+        .body(&format!("TODO today: {}", today_rems_as_string))
+        .show()
+        .unwrap();
+    }
+    else if !tomorrow_rems.is_empty() && today_rems.is_empty() {
+
+        let mut tomorrow_rems_as_string = String::new();
+        for rem in tomorrow_rems {
+            tomorrow_rems_as_string.push_str(&rem.name);
+            tomorrow_rems_as_string.push_str(", ");
+        }
+
+        tomorrow_rems_as_string.truncate(tomorrow_rems_as_string.len().saturating_sub(2));
+
+        Notification::new()
+            .summary("🔜 Get ready for Tomorrowwwww..")
+            .body(&format!("TODO tomorrow: {}", tomorrow_rems_as_string))
+            .show()
+            .unwrap();
+    }
+    else if !tomorrow_rems.is_empty() && !today_rems.is_empty() { 
+
+        let mut tomorrow_rems_as_string = String::new();
+        let mut today_rems_as_string = String::new();
+
+        for rem in today_rems {
+            today_rems_as_string.push_str(&rem.name);
+            today_rems_as_string.push_str(", ");
+        }
+        for rem in tomorrow_rems {
+            tomorrow_rems_as_string.push_str(&rem.name);
+            tomorrow_rems_as_string.push_str(", ");
+        }
+        Notification::new()
+            .summary("Seems you're busy.. 😪")
+            .body(&format!("Check this..:\nFor Today: {}\nFor Tomorrow: {}", today_rems_as_string, tomorrow_rems_as_string))
+            .show()
+            .unwrap();
+    }
+
+
 }
 // ---- Reminder structure ----- 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 struct Reminder {
     name: String,
     description: String,
