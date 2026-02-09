@@ -20,7 +20,9 @@ For Contributors, i apologize in advance for the code quality, I am still learni
 
 ## Building:
 
-To build this project ensure you have Rust installed, and this repository cloned. Then run:
+To build this project ensure you have Rust installed, and this repository cloned.
+`cd` to the project folder,
+Then run:
 
 ```bash
 cargo build 
