@@ -1,14 +1,14 @@
 use clap::{Parser, Subcommand};
-use chrono::NaiveDate;
+use chrono::{NaiveDate,Local};
 use serde::{Serialize, Deserialize};
 use std::fs;
 use std::io;
 use std::env;
 use std::path::PathBuf;
-//use notify_rust::Notification;
+use notify_rust::Notification;
 const CLI_TOP_BORDER: &str = "┌───────────────────────────────────────────────────┐\n|                      Reminders                    |\n└ - - - - - - - - - - - - - - - - - - - - - - - - - ┘ \n\n";
 const CLI_BOTTOM_BORDER: &str = "\n\n└───────────────────────────────────────────────────┘";
-
+// ------------ FILEPATH STUFF ------------------------------
 const REMINDERS_FILE_PATH: &str = ".local/share/reminders.json";
 
 fn get_file_path() -> String {
@@ -19,6 +19,27 @@ fn get_file_path() -> String {
     }
     return REMINDERS_FILE_PATH.to_string();
 
+}
+
+// ---------- notifications & daemon ------------------
+
+fn run_check() {
+   let reminders = load_reminders();
+   let today = Local::now().naive_local().date();
+
+   for rem in reminders {
+
+       if let Ok(rem_date) = NaiveDate::parse_from_str(&rem.date, "%Y-%m-%d") {
+        if rem_date == today{
+            Notification::new()
+                .summary(&format!("⏰ Heyy!!🤪 {}", rem.name))
+                .body(&format!("{}", rem.description))
+                .icon("appointment-soon")
+                .show()
+                .unwrap();
+        }
+       }
+   }
 }
 // ---- Reminder structure ----- 
 #[derive(Serialize, Deserialize, Debug)]
@@ -155,14 +176,15 @@ fn callback_add_reminder(field_buffer: &Vec<String>) {
 
 // ----- Show Reminders ----- 
 fn content_dsp_show_reminders(_current_step: i8) {
-    println!("       Rm |    Name            | Date       ");
-    println!("       ---------------------------------------");
+    println!("       Rm |              Name               | Date       ");
+    println!("       ---------------------------------------------");
     let reminders = load_reminders();
     if reminders.is_empty() {
         println!("Nothing here!.");
     } else {
         for (index, reminder) in reminders.iter().enumerate() {
-            println!("       {:<2} | {:<18} | {:<10}",index+1, reminder.name, reminder.date);
+            //TODO: Some magin numbers here!
+            println!("       {:<2} | {:<35} | {:<10}",index+1, reminder.name, reminder.date);
         }
     }
 }
@@ -184,6 +206,7 @@ enum Commands {
         all: bool,
     },
     Edit { nombre: String},
+    Check,
 
 }
 
@@ -258,6 +281,9 @@ fn main() {
         Some(Commands::Edit { nombre }) => {
             println!("Editando tarea: {}", nombre);
             // Aquí puedes agregar la lógica para editar una tarea específica
+        }
+        Some(Commands::Check) => {
+            run_check();
         }
         None => {
             println!("Usage: rem [action] --[option] 
